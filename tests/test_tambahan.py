@@ -113,3 +113,5 @@ def test_bug6_left_outer_join():
     script_mix = parse_sql(sql_mix)
     assert script_mix.errors == []
     assert [j.kind for j in script_mix.statements[0].joins] == ["LEFT", "INNER"]
+
+def test_todo_t1():

@@ -96,7 +96,7 @@ SELECT id FROM t;
 
 ## Bug 5: Presedensi Operator Logika `AND` dan `OR` Disamakan
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Kemal Melvin Ibrahim
 
 **Gejala.** Pada ekspresi kondisi `WHERE a = 1 OR b = 2 AND c = 3`, parser menghasilkan pohon AST `BinaryOp` yang mengelompokkan operasi dari kiri ke kanan: `((a = 1) OR (b = 2)) AND (c = 3)`. Menurut SPESIFIKASI.md bagian 3.1, `AND` berada di tingkat presedensi 2 (lebih tinggi) dibanding `OR` di tingkat presedensi 1, sehingga pohon AST wajib berbentuk `(a = 1) OR ((b = 2) AND (c = 3))`.
 
@@ -108,17 +108,17 @@ SELECT id FROM t WHERE a = 1 OR b = 2 AND c = 3;
 
 **Akar masalah.** Pada `crud/parser.py` fungsi `_logical()`, kedua operator diproses dalam satu loop bersama: `while self._check_kw("AND", "OR"):`. Ini membuat kedua operator memiliki kedudukan yang setara dalam grammar. Mengacu pada aturan grammar ekspresi berlapis (*Crafting Interpreters* Bab 6: Parsing Expressions), setiap tingkatan presedensi harus dipisahkan ke dalam fungsi grammar yang berbeda agar operator berprioritas lebih tinggi dievaluasi lebih dalam pada hierarki pemanggilan fungsi.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/parser.py`, ganti fungsi `_logical()` menjadi dua fungsi terpisah: `_or_expr()` yang memproses operator `OR` (memanggil `_and_expr()`) dan `_and_expr()` yang memproses operator `AND` (memanggil `_not()`). Fungsi `_expr()` diarahkan untuk memanggil `_or_expr()`. Alternatif menggunakan algoritma shunting-yard ditolak karena codebase memakai arsitektur recursive descent murni.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug5_precedence_and_or` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver memandu pembagian tingkat presedensi berjenjang (*stratified grammar* Bab 6) dan pemecahan fungsi `_logical` menjadi `_or_expr` dan `_and_expr`. Diverifikasi langsung oleh Kemal dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug5"`.
 
 ---
 
 ## Bug 6: Keyword `OUTER` pada Klausa `LEFT OUTER JOIN` Ditolak Parser
 
-**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** Denta Dwipawasesa
 
 **Gejala.** Query pada `pemeliharaan.sql` baris 5 yang menggunakan sintaks `left outer join` memicu error `ParseError: Baris 1, kolom 25: diharapkan JOIN, ditemukan 'OUTER'`. Menurut SPESIFIKASI.md bagian 3, aturan tata bahasa join mendukung klausa `[ "INNER" | "LEFT" [ "OUTER" ] ] "JOIN"`.
 
@@ -130,11 +130,11 @@ SELECT a.id FROM a LEFT OUTER JOIN b ON b.a_id = a.id;
 
 **Akar masalah.** Pada `crud/parser.py` fungsi `_join()`, saat parser menemukan token `LEFT`, parser langsung memanggil `self._expect_kw("JOIN")` tanpa memeriksa kemungkinan keberadaan keyword opsional `OUTER`. Konsep yang dilanggar adalah kepatuhan terhadap aturan tata bahasa formal (*Crafting Interpreters* Bab 6: Parsing Expressions), di mana seluruh komponen opsional grammar harus dicocokkan sebelum melanjutkan ke token wajib berikutnya.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/parser.py` fungsi `_join()`, tambahkan pemanggilan `self._match_kw("OUTER")` setelah mendeteksi token `LEFT` dan sebelum memanggil `self._expect_kw("JOIN")`. Alternatif mengubah lexer agar menggabungkan kata `LEFT` dan `OUTER` menjadi satu token ditolak karena menyalahi daftar token baku.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug6_left_outer_join` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver memverifikasi aturan grammar join di SPESIFIKASI.md bagian 3. Diverifikasi langsung oleh Denta dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug6"`.
 
 ---
 
