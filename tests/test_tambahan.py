@@ -10,6 +10,7 @@ from crud.lexer import TokenType as T, tokenize
 import pytest
 from crud.lexer import LexError
 from crud.parser import parse_sql
+from crud.ast_nodes import BinaryOp
 
 def test_bug1_keyword_case_insensitive():
     """Bug 1: Keyword dengan variasi huruf besar/kecil harus dikenali sebagai KEYWORD
@@ -76,3 +77,21 @@ def test_bug4_panic_mode_recovery_semicolon():
     # Statement kedua yang valid HARUS tetap berhasil diparse
     assert len(script.statements) == 1
     assert script.statements[0].sources[0].name == "pelanggan"
+
+def test_bug5_precedence_and_or():
+    """Bug 5: Operator AND memiliki presedensi lebih tinggi daripada OR (SPESIFIKASI.md bagian 3.1).
+
+    Contoh: a = 1 OR b = 2 AND c = 3 harus diparse sebagai a = 1 OR (b = 2 AND c = 3).
+    """
+    sql = "SELECT id FROM t WHERE a = 1 OR b = 2 AND c = 3;"
+    script = parse_sql(sql)
+    assert script.errors == []
+    where = script.statements[0].where
+
+    # Puncak pohon (root) harus OR
+    assert isinstance(where, BinaryOp)
+    assert where.op == "OR"
+
+    # Cabang kanan dari OR harus operasi AND
+    assert isinstance(where.right, BinaryOp)
+    assert where.right.op == "AND"
