@@ -95,3 +95,21 @@ def test_bug5_precedence_and_or():
     # Cabang kanan dari OR harus operasi AND
     assert isinstance(where.right, BinaryOp)
     assert where.right.op == "AND"
+
+def test_bug6_left_outer_join():
+    """Bug 6: Mendukung sintaks LEFT OUTER JOIN eksplisit (kata 'OUTER' opsional setelah 'LEFT')
+    sesuai SPESIFIKASI.md bagian 3.
+    """
+    sql = "SELECT c.id FROM pelanggan c LEFT OUTER JOIN alamat a ON a.id = c.id;"
+    script = parse_sql(sql)
+    assert script.errors == []
+    stmt = script.statements[0]
+    assert len(stmt.joins) == 1
+    assert stmt.joins[0].kind == "LEFT"
+    assert stmt.joins[0].source.name == "alamat"
+
+    # Memastikan LEFT JOIN (tanpa OUTER) dan INNER JOIN biasa tetap bekerja
+    sql_mix = "SELECT * FROM t LEFT JOIN a ON a.id = t.id JOIN b ON b.id = t.id;"
+    script_mix = parse_sql(sql_mix)
+    assert script_mix.errors == []
+    assert [j.kind for j in script_mix.statements[0].joins] == ["LEFT", "INNER"]

@@ -8,6 +8,7 @@ Salinan entri laporan setiap bug yang ditemukan dalam codebase. Bagian akar masa
 
 **Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Kemal Melvin Ibrahim
 
+
 **Gejala.** Query SQL yang ditulis menggunakan huruf kecil seperti `select id from pelanggan;` gagal diproses sebagai statement SELECT. Token pertama yang dihasilkan bertipe `IDENT` bernilai `'select'`, bukan `KEYWORD` `'SELECT'`. Menurut SPESIFIKASI.md bagian 2.2, keyword bersifat case-insensitive dan nilainya dinormalisasi ke huruf besar.
 
 **Reproduksi minimal.**
@@ -95,7 +96,7 @@ SELECT id FROM t;
 
 ## Bug 5: Presedensi Operator Logika `AND` dan `OR` Disamakan
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Kemal Melvin Ibrahim
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
 
 **Gejala.** Pada ekspresi kondisi `WHERE a = 1 OR b = 2 AND c = 3`, parser menghasilkan pohon AST `BinaryOp` yang mengelompokkan operasi dari kiri ke kanan: `((a = 1) OR (b = 2)) AND (c = 3)`. Menurut SPESIFIKASI.md bagian 3.1, `AND` berada di tingkat presedensi 2 (lebih tinggi) dibanding `OR` di tingkat presedensi 1, sehingga pohon AST wajib berbentuk `(a = 1) OR ((b = 2) AND (c = 3))`.
 
@@ -107,11 +108,11 @@ SELECT id FROM t WHERE a = 1 OR b = 2 AND c = 3;
 
 **Akar masalah.** Pada `crud/parser.py` fungsi `_logical()`, kedua operator diproses dalam satu loop bersama: `while self._check_kw("AND", "OR"):`. Ini membuat kedua operator memiliki kedudukan yang setara dalam grammar. Mengacu pada aturan grammar ekspresi berlapis (*Crafting Interpreters* Bab 6: Parsing Expressions), setiap tingkatan presedensi harus dipisahkan ke dalam fungsi grammar yang berbeda agar operator berprioritas lebih tinggi dievaluasi lebih dalam pada hierarki pemanggilan fungsi.
 
-**Perbaikan.** Pada `crud/parser.py`, ganti fungsi `_logical()` menjadi dua fungsi terpisah: `_or_expr()` yang memproses operator `OR` (memanggil `_and_expr()`) dan `_and_expr()` yang memproses operator `AND` (memanggil `_not()`). Fungsi `_expr()` diarahkan untuk memanggil `_or_expr()`. Alternatif menggunakan algoritma shunting-yard ditolak karena codebase memakai arsitektur recursive descent murni.
+**Perbaikan.** *(belum dilakukan)*
 
-**Test regresi.** `test_bug5_precedence_and_or` di `tests/test_tambahan.py`.
+**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
 
-**Peran AI.** Co-driver memandu pembagian tingkat presedensi berjenjang (*stratified grammar* Bab 6) dan pemecahan fungsi `_logical` menjadi `_or_expr` dan `_and_expr`. Diverifikasi langsung oleh Kemal dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug5"`.
+**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
 
 ---
 
