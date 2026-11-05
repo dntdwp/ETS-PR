@@ -3,6 +3,7 @@
 Grammar lengkap ada di SPESIFIKASI.md bagian 3. Setiap fungsi `_nama`
 kurang lebih berpadanan dengan satu aturan grammar.
 """
+import colorama
 from . import ast_nodes as ast
 from .lexer import Token, TokenType as T, tokenize
 
@@ -213,8 +214,8 @@ class Parser:
             return ast.Insert(table, columns, rows, None, line=start.line)
         if self._check_kw("SELECT"):
             # TODO(T1): dukung INSERT INTO ... SELECT ... (SPESIFIKASI.md bagian 3 dan 5).
-            raise ParseError("INSERT ... SELECT belum didukung", self._peek())
-        raise ParseError("diharapkan VALUES atau SELECT", self._peek())
+            query = self._select()
+            return ast.Insert(table, columns, [], query, line=start.line)
 
     def _value_row(self) -> list:
         self._expect(T.LPAREN, "'(' pembuka VALUES")

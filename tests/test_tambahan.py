@@ -114,4 +114,23 @@ def test_bug6_left_outer_join():
     assert script_mix.errors == []
     assert [j.kind for j in script_mix.statements[0].joins] == ["LEFT", "INNER"]
 
-def test_todo_t1():
+def test_todo_t1_insert_select():
+    """TODO(T1): Mendukung sintaks INSERT INTO ... SELECT ... tanpa klausa VALUES
+    sesuai SPESIFIKASI.md bagian 3 dan 5.
+    """
+    sql = "INSERT INTO arsip (id, total) SELECT id, total FROM pesanan WHERE tanggal < :batas;"
+    script = parse_sql(sql)
+    assert script.errors == []
+    stmt = script.statements[0]
+    assert stmt.table.name == "arsip"
+    assert stmt.columns == ["id", "total"]
+    assert stmt.values == []
+    assert stmt.query is not None
+    assert stmt.query.sources[0].name == "pesanan"
+
+    # Kasus INSERT INTO ... SELECT tanpa daftar kolom eksplisit
+    sql_no_cols = "INSERT INTO log SELECT * FROM aktivitas;"
+    script_no_cols = parse_sql(sql_no_cols)
+    assert script_no_cols.errors == []
+    assert script_no_cols.statements[0].columns == []
+    assert script_no_cols.statements[0].query.sources[0].name == "aktivitas"
