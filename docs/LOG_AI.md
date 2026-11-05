@@ -8,6 +8,7 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | 2 | Denta & Kemal | Diskusi konsep maximal munch Bab 4 untuk Bug 2 (operator `<>`) dan struktur test regresinya | Diterima | Solusi langsung menangani `<>` sebagai token tunggal di lexer sesuai SPESIFIKASI.md bagian 2.5 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug2"` (lulus) |
 | 3 | Denta & Kemal | Menerapkan alur TDD untuk Bug 3 (escaped quote `''`) dan logika lookahead `_peek()` Bab 4 | Diterima | Test regresi terbukti gagal sebelum perbaikan kode dan lulus setelah penanganan lookahead ditambahkan | Menjalankan `pytest tests/test_tambahan.py -v -k "bug3"` (merah saat TDD awal, hijau setelah diperbaiki) |
 | 4 | Kemal & Denta | Diskusi penanganan komentar blok multi-baris TODO(T3) dan opsi assertion LexError pada test_tambahan.py | Diubah | Memilih opsi menyederhanakan assert LexError tanpa pengecekan teks spesifik agar kode implementasi ringkas | Menjalankan `pytest tests/test_tambahan.py -v -k "t3"` dan `pytest tests/test_lexer.py::test_komentar_blok` (keduanya lulus) |
+| 5 | Kemal & Denta | Menerapkan TDD untuk Bug 4 (panic mode error recovery `_synchronize`) Bab 6 Crafting Interpreters | Diterima | Sinkronisasi berhenti setelah titik koma `;` sesuai SPESIFIKASI.md bagian 6 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug4"` (merah sebelum perbaikan, hijau sesudahnya) |
 
 **Refleksi (3-5 kalimat).** Di bagian mana AI paling membantu? Di mana AI keliru atau
 menyesatkan, dan bagaimana kalian mengetahuinya?
