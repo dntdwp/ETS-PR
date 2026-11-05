@@ -9,6 +9,7 @@ Isi dengan:
 from crud.lexer import TokenType as T, tokenize
 import pytest
 from crud.lexer import LexError
+from crud.parser import parse_sql
 
 def test_bug1_keyword_case_insensitive():
     """Bug 1: Keyword dengan variasi huruf besar/kecil harus dikenali sebagai KEYWORD
@@ -62,3 +63,16 @@ def test_todo_t3_komentar_blok():
     # 3. Komentar tidak ditutup harus memicu LexError
     with pytest.raises(LexError):
         tokenize("/* komentar tidak pernah ditutup\nSELECT id FROM t")
+
+def test_bug4_panic_mode_recovery_semicolon():
+    """Bug 4: Panic mode error recovery harus membuang token sampai ';' berikutnya
+
+    dan statement valid setelahnya tetap diproses (SPESIFIKASI.md bagian 6).
+    """
+    sql = "SELECT id nama, FROM pesanan; SELECT id FROM pelanggan;"
+    script = parse_sql(sql)
+    # Harus ada 1 error dari statement pertama yang rusak
+    assert len(script.errors) == 1
+    # Statement kedua yang valid HARUS tetap berhasil diparse
+    assert len(script.statements) == 1
+    assert script.statements[0].sources[0].name == "pelanggan"
