@@ -9,6 +9,7 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | 3 | Denta & Kemal | Menerapkan alur TDD untuk Bug 3 (escaped quote `''`) dan logika lookahead `_peek()` Bab 4 | Diterima | Test regresi terbukti gagal sebelum perbaikan kode dan lulus setelah penanganan lookahead ditambahkan | Menjalankan `pytest tests/test_tambahan.py -v -k "bug3"` (merah saat TDD awal, hijau setelah diperbaiki) |
 | 4 | Kemal & Denta | Diskusi penanganan komentar blok multi-baris TODO(T3) dan opsi assertion LexError pada test_tambahan.py | Diubah | Memilih opsi menyederhanakan assert LexError tanpa pengecekan teks spesifik agar kode implementasi ringkas | Menjalankan `pytest tests/test_tambahan.py -v -k "t3"` dan `pytest tests/test_lexer.py::test_komentar_blok` (keduanya lulus) |
 | 5 | Kemal & Denta | Menerapkan TDD untuk Bug 4 (panic mode error recovery `_synchronize`) Bab 6 Crafting Interpreters | Diterima | Sinkronisasi berhenti setelah titik koma `;` sesuai SPESIFIKASI.md bagian 6 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug4"` (merah sebelum perbaikan, hijau sesudahnya) |
+| 6 | Kemal & Denta | Pembagian presedensi bertingkat Bug 5 (AND vs OR) memecah `_logical` menjadi `_or_expr` dan `_and_expr` | Diterima | Sesuai aturan stratified grammar Bab 6 dan SPESIFIKASI.md bagian 3.1 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug5"` (lulus setelah perbaikan) |
 
 **Refleksi (3-5 kalimat).** Di bagian mana AI paling membantu? Di mana AI keliru atau
 menyesatkan, dan bagaimana kalian mengetahuinya?
