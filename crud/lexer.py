@@ -176,8 +176,9 @@ class Lexer:
         while self._peek().isalnum() or self._peek() == "_":
             self._advance()
         text = self.src[start:self.pos]
-        if text in KEYWORDS:
-            self._add(TokenType.KEYWORD, text, line, col)
+        text_upper = text.upper()    # Normalisasi text/himpunan KEYWORD menjadi kapital
+        if text_upper in KEYWORDS:
+            self._add(TokenType.KEYWORD, text_upper, line, col)
         else:
             self._add(TokenType.IDENT, text, line, col)
 

@@ -5,3 +5,5 @@ Isi dengan:
    lulus sesudahnya). Beri nama yang menjelaskan bug-nya.
 2. Lima test kasus tepi, masing-masing dengan komentar singkat mengapa kasus itu berisiko.
 """
+
+from crud.lexer import TokenType as T, tokenize
