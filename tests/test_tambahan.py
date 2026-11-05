@@ -7,6 +7,8 @@ Isi dengan:
 """
 
 from crud.lexer import TokenType as T, tokenize
+import pytest
+from crud.lexer import LexError
 
 def test_bug1_keyword_case_insensitive():
     """Bug 1: Keyword dengan variasi huruf besar/kecil harus dikenali sebagai KEYWORD
@@ -43,3 +45,21 @@ def test_bug3_string_escaped_quote():
     toks_edge = tokenize("'''halo'''")
     assert toks_edge[0].type == T.STRING
     assert toks_edge[0].value == "'halo'"
+
+def test_todo_t3_komentar_blok():
+    """TODO(T3): Komentar blok /* ... */ tidak menghasilkan token, boleh multi-baris,
+
+    boleh berisi '*', dan melempar LexError jika tidak ditutup.
+    """
+    # 1. Komentar satu baris dan multi-baris
+    toks = tokenize("/* komentar satu baris */ SELECT /* baris 1\n baris 2 */ id FROM t")
+    assert [t.value for t in toks if t.type != T.EOF] == ["SELECT", "id", "FROM", "t"]
+
+    # 2. Komentar berisi karakter '*' dan '/' di dalamnya
+    toks_star = tokenize("/* perkalian: 2 * 3 / 6 = 1 ***/ SELECT id FROM t")
+    assert toks_star[0].value == "SELECT"
+
+    # 3. Komentar tidak ditutup harus memicu LexError
+    with pytest.raises(LexError) as exc:
+        tokenize("/* komentar tidak pernah ditutup\nSELECT id FROM t")
+    assert "tidak ditutup" in str(exc.value)
