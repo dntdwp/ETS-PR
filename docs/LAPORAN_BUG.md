@@ -6,7 +6,7 @@ Salinan entri laporan setiap bug yang ditemukan dalam codebase. Bagian akar masa
 
 ## Bug 1: Keyword Huruf Kecil Dianggap Identifier
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Kemal Melvin Ibrahim
 
 **Gejala.** Query SQL yang ditulis menggunakan huruf kecil seperti `select id from pelanggan;` gagal diproses sebagai statement SELECT. Token pertama yang dihasilkan bertipe `IDENT` bernilai `'select'`, bukan `KEYWORD` `'SELECT'`. Menurut SPESIFIKASI.md bagian 2.2, keyword bersifat case-insensitive dan nilainya dinormalisasi ke huruf besar.
 
@@ -18,11 +18,11 @@ select id from t;
 
 **Akar masalah.** Pada `crud/lexer.py` fungsi `_word()`, string diambil langsung dari kode sumber dan dicocokkan ke himpunan `KEYWORDS` tanpa diubah ke huruf besar (`if text in KEYWORDS:`). Karena seluruh elemen di set `KEYWORDS` berhuruf kapital, kata kunci huruf kecil masuk ke blok `else` sebagai `IDENT`. Hal ini melanggar konsep scanning reserved words (*Crafting Interpreters* Bab 4: Scanning), di mana penentuan token keyword harus mengabaikan perbedaan kapitalisasi.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/lexer.py` fungsi `_word()`, tambahkan normalisasi `text_upper = text.upper()`. Jika `text_upper in KEYWORDS`, simpan token `KEYWORD` dengan nilai `text_upper`. Jika bukan, tetap simpan sebagai `IDENT` dengan nilai asli `text`. Alternatif mendaftarkan variasi huruf kecil ke himpunan `KEYWORDS` ditolak karena memboroskan memori dan nilai token tidak otomatis ternormalisasi kapital.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug1_keyword_case_insensitive` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver membantu menunjukkan letak fungsi `_word()` di Bab 4 dan menyarankan struktur test regresi. Diverifikasi langsung oleh Kemal dengan menjalankan `pytest tests/test_lexer.py::test_keyword_huruf_kecil -v` dan `pytest tests/test_tambahan.py -v`.
 
 ---
 
