@@ -28,7 +28,7 @@ select id from t;
 
 ## Bug 2: Operator Perbandingan `<>` Dipecah Menjadi Dua Token
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Denta Dwipawasesa
 
 **Gejala.** Pernyataan SQL dengan operator `<>` menghasilkan error `ParseError: Baris 6, kolom 41: diharapkan ekspresi, ditemukan '>'` pada `laporan_penjualan.sql`. Lexer menghasilkan dua token terpisah: `OP` bernilai `'<'` lalu `OP` bernilai `'>'`. Menurut SPESIFIKASI.md bagian 2.5, `<>` adalah satu token `OP`.
 
@@ -40,11 +40,11 @@ SELECT id FROM t WHERE a <> 1;
 
 **Akar masalah.** Pada `crud/lexer.py` fungsi `_scan_token()`, penanganan karakter `<` hanya memeriksa kemungkinan karakter `=` (`<=`). Karakter `>` tidak dicek, sehingga `>` dibaca pada perulangan pemindaian berikutnya sebagai token tersendiri. Kode melanggar prinsip *maximal munch* (*Crafting Interpreters* Bab 4: Scanning), di mana lexer wajib mengambil deretan karakter terpanjang yang valid untuk membentuk satu token.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/lexer.py` fungsi `_scan_token()`, pada blok penanganan karakter `<`, tambahkan cabang `elif self._match(">"): op = "<>"` sebelum cabang `else`. Alternatif menggabungkan dua token operator terpisah di tingkat parser ditolak karena melanggar batas tanggung jawab pipeline (parser tidak bertugas merapikan kesalahan tokenisasi lexer).
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug2_operator_not_equals` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver membantu menjelaskan konsep maximal munch (Bab 4) dan struktur test regresi. Diverifikasi langsung oleh Denta dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug2"`.
 
 ---
 

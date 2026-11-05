@@ -20,3 +20,14 @@ def test_bug1_keyword_case_insensitive():
     # Memastikan kata yang hanya diawali keyword tetap menjadi IDENT
     ident_toks = tokenize("selection fromage")
     assert [t.type for t in ident_toks if t.type != T.EOF] == [T.IDENT, T.IDENT]
+
+def test_bug2_operator_not_equals():
+    """Bug 2: Operator '<>' harus dibaca sebagai satu token OP tunggal (maximal munch)."""
+    toks = tokenize("a <> 1")
+    op_tokens = [t for t in toks if t.type == T.OP]
+    assert len(op_tokens) == 1
+    assert op_tokens[0].value == "<>"
+
+    # Memastikan operator pembanding lain tetap bekerja utuh
+    toks_all = tokenize("< <= <> > >= !=")
+    assert [t.value for t in toks_all if t.type == T.OP] == ["<", "<=", "<>", ">", ">=", "!="]
