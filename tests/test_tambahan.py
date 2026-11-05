@@ -31,3 +31,15 @@ def test_bug2_operator_not_equals():
     # Memastikan operator pembanding lain tetap bekerja utuh
     toks_all = tokenize("< <= <> > >= !=")
     assert [t.value for t in toks_all if t.type == T.OP] == ["<", "<=", "<>", ">", ">=", "!="]
+
+def test_bug3_string_escaped_quote():
+    """Bug 3: Dua kutip tunggal berturut-turut ('') di dalam string mewakili satu karakter kutip asli."""
+    toks = tokenize("'O''Brien'")
+    assert len(toks) == 2  # Token STRING dan EOF
+    assert toks[0].type == T.STRING
+    assert toks[0].value == "O'Brien"
+
+    # Kasus kutip escape di awal dan akhir string
+    toks_edge = tokenize("'''halo'''")
+    assert toks_edge[0].type == T.STRING
+    assert toks_edge[0].value == "'halo'"
