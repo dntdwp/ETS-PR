@@ -72,7 +72,7 @@ SELECT 'O''Brien' FROM t;
 
 ## Bug 4: Panic Mode Error Recovery Membuang Seluruh Token Sampai Akhir File
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Kemal Melvin Ibrahim
 
 **Gejala.** Pada file `campuran_error.sql`, baris 4 mengalami syntax error (`SELECT id nama, FROM pesanan;`). Akibatnya, statement valid di baris 6 (UPDATE) dan baris 8 (DELETE) hilang total dari AST dan `crud_matrix.csv`. Menurut SPESIFIKASI.md bagian 6, setelah syntax error ditemukan, parser harus membuang token sampai dan termasuk tanda `;` berikutnya, lalu melanjutkan pemrosesan statement valid sesudahnya.
 
@@ -85,11 +85,11 @@ SELECT id FROM t;
 
 **Akar masalah.** Fungsi `_synchronize()` pada `crud/parser.py` hanya berisi loop `while not self._at_end(): self._advance()`. Fungsi ini menghabiskan seluruh token yang tersisa hingga `EOF`. Hal ini melanggar konsep *Panic Mode Error Recovery* (*Crafting Interpreters* Bab 6: Parsing Expressions), di mana parser seharusnya hanya membuang token sampai batas sinkronisasi tertentu (pada SQL adalah batas akhir statement berupa `;`).
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/parser.py` fungsi `_synchronize()`, ubah perulangan agar membaca dan membuang token sampai menemukan token berjenis `SEMICOLON` (`if self._advance().type == T.SEMICOLON: return`), lalu keluar dari mode panik untuk memproses statement berikutnya. Alternatif sinkronisasi berbasis keyword awal statement (`SELECT`, `INSERT`) ditolak karena spesifikasi bagian 6 secara tegas mensyaratkan token dibuang sampai dan termasuk titik koma.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug4_panic_mode_recovery_semicolon` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver memandu penerapan konsep panic mode recovery batas titik koma (*Crafting Interpreters* Bab 6). Diverifikasi langsung oleh Kemal dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug4"`.
 
 ---
 
