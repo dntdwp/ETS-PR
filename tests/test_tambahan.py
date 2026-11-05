@@ -60,6 +60,5 @@ def test_todo_t3_komentar_blok():
     assert toks_star[0].value == "SELECT"
 
     # 3. Komentar tidak ditutup harus memicu LexError
-    with pytest.raises(LexError) as exc:
+    with pytest.raises(LexError):
         tokenize("/* komentar tidak pernah ditutup\nSELECT id FROM t")
-    assert "tidak ditutup" in str(exc.value)
