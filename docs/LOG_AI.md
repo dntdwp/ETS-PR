@@ -6,6 +6,8 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | --- | --- | --- | --- | --- | --- |
 | 1 | Kemal & Denta | Diskusi akar masalah Bug 1 (keyword lowercase) dan struktur test regresi di test_tambahan.py | Diterima | Solusi to-the-point sesuai Bab 4 Crafting Interpreters dan memenuhi SPESIFIKASI.md bagian 2.2 | Menjalankan `pytest tests/test_lexer.py::test_keyword_huruf_kecil -v` dan `pytest tests/test_tambahan.py -v` (keduanya lulus) |
 | 2 | Denta & Kemal | Diskusi konsep maximal munch Bab 4 untuk Bug 2 (operator `<>`) dan struktur test regresinya | Diterima | Solusi langsung menangani `<>` sebagai token tunggal di lexer sesuai SPESIFIKASI.md bagian 2.5 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug2"` (lulus) |
+| 3 | Denta & Kemal | Menerapkan alur TDD untuk Bug 3 (escaped quote `''`) dan logika lookahead `_peek()` Bab 4 | Diterima | Test regresi terbukti gagal sebelum perbaikan kode dan lulus setelah penanganan lookahead ditambahkan | Menjalankan `pytest tests/test_tambahan.py -v -k "bug3"` (merah saat TDD awal, hijau setelah diperbaiki) |
+| 4 | Kemal & Denta | Diskusi penanganan komentar blok multi-baris TODO(T3) dan opsi assertion LexError pada test_tambahan.py | Diubah | Memilih opsi menyederhanakan assert LexError tanpa pengecekan teks spesifik agar kode implementasi ringkas | Menjalankan `pytest tests/test_tambahan.py -v -k "t3"` dan `pytest tests/test_lexer.py::test_komentar_blok` (keduanya lulus) |
 
 **Refleksi (3-5 kalimat).** Di bagian mana AI paling membantu? Di mana AI keliru atau
 menyesatkan, dan bagaimana kalian mengetahuinya?

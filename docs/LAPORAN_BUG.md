@@ -50,7 +50,7 @@ SELECT id FROM t WHERE a <> 1;
 
 ## Bug 3: Karakter Kutip Tunggal `''` di Dalam String Menutup String Lebih Awal
 
-**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** Denta Dwipawasesa
 
 **Gejala.** String SQL yang memuat karakter escape dua tanda kutip seperti `'O''Brien'` terpotong menjadi token `'O'`. Tanda kutip kedua dianggap sebagai penutup string, sehingga teks sisanya memicu error sintaks atau karakter tidak dikenal. Menurut SPESIFIKASI.md bagian 2.4, dua kutip tunggal berurutan di dalam string melambangkan satu karakter kutip asli.
 
@@ -62,11 +62,11 @@ SELECT 'O''Brien' FROM t;
 
 **Akar masalah.** Pada `crud/lexer.py` fungsi `_string()`, loop pemindaian karakter langsung berhenti (`break`) setiap kali menemukan karakter `'` tanpa memeriksa karakter berikutnya. Mengacu pada konsep string escape sequence (*Crafting Interpreters* Bab 4: Scanning), scanner harus menggunakan teknik lookahead (`_peek()`). Jika karakter kutip diikuti oleh kutip lagi, scanner harus mengonsumsi keduanya dan menyimpan satu karakter `'` ke buffer.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/lexer.py` fungsi `_string()`, saat mendeteksi karakter `'`, tambahkan pemeriksaan lookahead `if self._peek() == "'":`. Jika ada kutip berikutnya, konsumsi dengan `self._advance()` dan masukkan satu karakter `'` ke buffer `chars`. Jika bukan, hentikan loop pembacaan string (`break`). Alternatif memakai regex replace string setelah token selesai ditolak karena loop `_string` sudah terlanjur putus di tengah jalan.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug3_string_escaped_quote` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver menyarankan alur TDD (membuat test regresi gagal terlebih dahulu sebelum perbaikan) dan logika lookahead (*Crafting Interpreters* Bab 4). Diverifikasi langsung oleh Denta dengan menjalankan `pytest tests/test_tambahan.py -v -k "bug3"`.
 
 ---
 
