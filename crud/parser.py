@@ -3,7 +3,6 @@
 Grammar lengkap ada di SPESIFIKASI.md bagian 3. Setiap fungsi `_nama`
 kurang lebih berpadanan dengan satu aturan grammar.
 """
-import colorama
 from . import ast_nodes as ast
 from .lexer import Token, TokenType as T, tokenize
 

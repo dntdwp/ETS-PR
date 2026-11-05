@@ -11,6 +11,7 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | 5 | Kemal & Denta | Menerapkan TDD untuk Bug 4 (panic mode error recovery `_synchronize`) Bab 6 Crafting Interpreters | Diterima | Sinkronisasi berhenti setelah titik koma `;` sesuai SPESIFIKASI.md bagian 6 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug4"` (merah sebelum perbaikan, hijau sesudahnya) |
 | 6 | Kemal & Denta | Pembagian presedensi bertingkat Bug 5 (AND vs OR) memecah `_logical` menjadi `_or_expr` dan `_and_expr` | Diterima | Sesuai aturan stratified grammar Bab 6 dan SPESIFIKASI.md bagian 3.1 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug5"` (lulus setelah perbaikan) |
 | 7 | Denta & Kemal | Menerapkan TDD untuk Bug 6 (kata kunci `OUTER` opsional pada `LEFT JOIN`) SPESIFIKASI.md bagian 3 | Diterima | Solusi langsung mengonsumsi `OUTER` sebelum kata kunci `JOIN` | Menjalankan `pytest tests/test_tambahan.py -v -k "bug6"` (merah sebelum perbaikan, hijau sesudahnya) |
+| 8 | Denta & Kemal | Menerapkan TDD untuk TODO(T1) sintaks `INSERT INTO ... SELECT ...` di parser | Diterima | Memanggil `self._select()` dan menyimpannya ke atribut query `ast.Insert` sesuai SPESIFIKASI.md bagian 3 | Menjalankan `pytest tests/test_tambahan.py -v -k "t1"` dan `pytest tests/test_parser.py::test_insert_select` (keduanya lulus) |
 
 **Refleksi (3-5 kalimat).** Di bagian mana AI paling membantu? Di mana AI keliru atau
 menyesatkan, dan bagaimana kalian mengetahuinya?
