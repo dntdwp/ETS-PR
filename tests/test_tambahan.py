@@ -204,9 +204,7 @@ def test_bug9_update_subquery_read_only():
     assert usage["t2"] == {"R"}
 
 
-# =========================================================================
 # LIMA TEST KASUS TEPI (EDGE CASES)
-# =========================================================================
 
 def test_kasus_tepi_1_string_kosong_dan_kutip_ekstrem():
     """Kasus tepi 1 (Lexer): String kosong '' dan string berisi escaped quote berturut-turut ''''.
