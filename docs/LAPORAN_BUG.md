@@ -185,7 +185,7 @@ SELECT s.id FROM t2;
 
 ## Bug 9: Subquery pada Pernyataan `UPDATE` Dilabeli Sebagai Operasi `U`
 
-**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** Kemal Melvin Ibrahim
 
 **Gejala.** Pada `audit.sql` baris 20 (`UPDATE pesanan SET ... WHERE pelanggan_id IN (SELECT id FROM pelanggan ...)`), tabel `pelanggan` tercatat memiliki operasi `U` pada `detail.csv`, sehingga matrix file menjadi `RU`. Menurut SPESIFIKASI.md bagian 5, membaca tabel lewat subquery selalu bernilai `R` tanpa memandang jenis statement luarnya.
 
@@ -197,8 +197,8 @@ UPDATE t1 SET a = 1 WHERE b IN (SELECT c FROM t2);
 
 **Akar masalah.** Pada `crud/analyzer.py` fungsi `analyze_statement()`, blok penanganan `ast.Update` memanggil fungsi pengumpul operasi dengan parameter `op="U"` untuk ekspresi assignment dan WHERE: `_collect(stmt.where, usage, "U")`. Akibatnya, tabel yang hanya dibaca di dalam subquery klausa WHERE ikut terkena cap operasi Update. Ini melanggar aturan semantik CRUD pada spesifikasi proyek.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/analyzer.py` cabang `ast.Update`, ubah parameter operasi pemanggilan `_collect` untuk `assignment.value` dan `stmt.where` dari `"U"` menjadi `"R"`. Dengan perbaikan ini, tabel target statement tetap dicatat sebagai `"U"`, sedangkan subquery atau tabel referensi lain yang dibaca pada ekspresi assignment dan filter kondisi WHERE dicatat dengan benar sebagai `"R"`.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug9_update_subquery_read_only` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver memvalidasi aturan semantik operasi CRUD pada SPESIFIKASI.md bagian 5 bahwa subquery pada klausa UPDATE selalu bernilai `R`. Diverifikasi langsung oleh Kemal lewat `pytest tests/test_tambahan.py -v -k "bug9"`.
