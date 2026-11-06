@@ -140,7 +140,7 @@ SELECT a.id FROM a LEFT OUTER JOIN b ON b.a_id = a.id;
 
 ## Bug 7: Pencarian Scope Resolver Terbalik dari Luar ke Dalam
 
-**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Kemal Melvin Ibrahim · **Diperbaiki oleh:** Denta Dwipawasesa
 
 **Gejala.** Pada query subquery di mana alias lokal sama dengan alias luar (misalnya `SELECT x.id FROM pelanggan x WHERE x.id IN (SELECT x.pelanggan_id FROM pesanan x ...)` di `audit.sql`), kolom `x.pelanggan_id` dan `x.total` di dalam subquery salah dihubungkan ke tabel luar `pelanggan`. Berdasarkan SPESIFIKASI.md bagian 4.3, qualifier harus dicari dari scope terdalam ke luar agar terjadi mekanisme shadowing.
 
@@ -152,11 +152,11 @@ SELECT x.id FROM t1 x WHERE x.id IN (SELECT x.id FROM t2 x);
 
 **Akar masalah.** Pada `crud/resolver.py` fungsi `_lookup(name)`, rantai scope dikumpulkan lalu dibalik urutannya dengan `for scope in reversed(chain):`. Karena rantai sudah dibentuk dari scope aktif menuju scope induk (`parent`), pembalikan ini justru membuat penelusuran bermula dari scope terluar (global/induk). Hal ini melanggar konsep lexical scope resolution (*Crafting Interpreters* Bab 11: Resolving and Binding), di mana deklarasi lokal terdekat wajib menyembunyikan (*shadow*) deklarasi dengan nama serupa di lingkungan luar.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/resolver.py` fungsi `_lookup()`, ubah pencarian scope agar menelusuri langsung pointer `scope = scope.parent` mulai dari `self.scope` (terdalam) ke induknya tanpa membalik urutan list. Alternatif membalik logika pembentukan list ditolak karena penelusuran pointer linked-list scope lebih efisien dan sesuai implementasi baku Bab 11.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug7_subquery_shadowing_innermost_first` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver menjelaskan konsep penelusuran rantai lingkungan (*lexical scope resolution* Bab 11 Crafting Interpreters) dan menyusun skenario test regresi. Diverifikasi langsung oleh Denta lewat `pytest tests/test_tambahan.py -v -k "bug7"`.
 
 ---
 

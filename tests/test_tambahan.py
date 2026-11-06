@@ -151,3 +151,18 @@ def test_bug7_subquery_shadowing_innermost_first():
 
     # Harus terhubung ke 'pesanan' (scope dalam), bukan 'pelanggan' (scope luar)
     assert inner_col.resolved == "pesanan"
+
+def test_bug8_delete_scope_leakage():
+    """Bug 8: Scope statement DELETE harus ditutup (_pop) agar aliasnya tidak bocor
+    ke statement berikutnya sesuai SPESIFIKASI.md bagian 4.5.
+    """
+    sql = "DELETE FROM sesi s WHERE s.id = 1; SELECT s.id FROM pengguna u;"
+    script = parse_sql(sql)
+    diags = Resolver().resolve_script(script)
+
+    # Statement kedua tidak punya alias 's', wajib menghasilkan error diagnostik
+    assert any(d.level == "error" and "'s'" in d.message for d in diags)
+
+    # Kolom s.id di statement kedua tidak boleh ter-resolve ke 'sesi'
+    select_col = script.statements[1].columns[0].expr
+    assert select_col.resolved is None
