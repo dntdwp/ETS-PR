@@ -85,7 +85,7 @@ class Resolver:
 
     def _lookup(self, name: str) -> ScopeEntry | None:
         """Cari nama di rantai scope."""
-        chain = []
+        # Bug 7: Cari identifier dari scope terdalam ke scope luar agar alias lokal menutupi (shadow) alias luar.
         scope = self.scope
         while scope is not None:
             if name in scope.entries:
@@ -136,6 +136,7 @@ class Resolver:
         self._push()
         self._declare_source(dele.table)
         self._expr(dele.where)
+        # Bug 8: Tutup scope DELETE dengan _pop() agar alias tabel tidak bocor ke statement berikutnya.
         self._pop()
 
     # ---- ekspresi -------------------------------------------------------
@@ -175,14 +176,11 @@ class Resolver:
             else:
                 col.resolved = _target_of(entry)
             return
-        # TODO(T2): kolom tanpa qualifier (SPESIFIKASI.md bagian 4.3).
-        #   - tepat satu tabel di scope terdalam -> isi col.resolved
-        #   - lebih dari satu tabel              -> warning "ambigu tanpa skema"
-        #   - tidak ada tabel                    -> warning
+        # TODO(T2): Resolusi kolom tanpa qualifier pada scope terdalam: hubungkan jika tepat 1 tabel, atau beri warning jika ambigu (>1) / tidak ada.
         if self.scope is None or len(self.scope.entries) == 0:
-            self._warning(f"kolom'{col.name}' tidak ada tabel di scope", col.line)
+            self._warning(f"kolom '{col.name}' tidak ada tabel di scope", col.line)
         elif len(self.scope.entries) == 1:
             entry = next(iter(self.scope.entries.values()))
             col.resolved = _target_of(entry)
         else:
-            self._warning(f"kolom'{col.name}' ambigu tanpa skema", col.line)
+            self._warning(f"kolom '{col.name}' ambigu tanpa skema", col.line)

@@ -88,8 +88,7 @@ class Parser:
         return ast.Script(statements, errors)
 
     def _synchronize(self) -> None:
-        # Panic mode (Crafting Interpreters bab 6): buang token sampai
-        # titik aman, lalu lanjutkan parsing.
+        # Bug 4: Buang token sampai melewati titik koma (SEMICOLON) agar recovery berhenti di akhir statement.
         while not self._at_end():
             if self._advance().type == T.SEMICOLON:
                 return
@@ -177,6 +176,7 @@ class Parser:
             kind = "INNER"
         elif self._match_kw("LEFT"):
             kind = "LEFT"
+            # Bug 6: Izinkan kata kunci OUTER opsional setelah LEFT pada klausa LEFT [OUTER] JOIN.
             self._match_kw("OUTER")
         self._expect_kw("JOIN")
         source = self._table_ref()
@@ -212,7 +212,7 @@ class Parser:
                 rows.append(self._value_row())
             return ast.Insert(table, columns, rows, None, line=start.line)
         if self._check_kw("SELECT"):
-            # TODO(T1): dukung INSERT INTO ... SELECT ... (SPESIFIKASI.md bagian 3 dan 5).
+            # TODO(T1): Parse subquery SELECT pada statement INSERT INTO ... SELECT ... tanpa klausa VALUES.
             query = self._select()
             return ast.Insert(table, columns, [], query, line=start.line)
 
@@ -250,6 +250,7 @@ class Parser:
     def _expr(self):
         return self._or_expr()
 
+    # Bug 5: Pisahkan level grammar _or_expr dan _and_expr agar operator AND diproses lebih tinggi daripada OR.
     def _or_expr(self):
         left = self._and_expr()
         while self._match_kw("OR"):

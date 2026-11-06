@@ -18,6 +18,7 @@ def analyze_statement(stmt) -> dict[str, set[str]]:
             _collect_select(stmt.query, usage, "R")
     elif isinstance(stmt, ast.Update):
         usage[stmt.table.name].add("U")
+        # Bug 9: Subquery di klausa SET dan WHERE pada UPDATE hanya membaca tabel (operasi 'R'), bukan 'U'.
         for assignment in stmt.assignments:
             _collect(assignment.value, usage, "R")
         _collect(stmt.where, usage, "R")
