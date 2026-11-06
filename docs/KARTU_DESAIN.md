@@ -1,19 +1,12 @@
 # Kartu Desain
 
 Tuliskan lima keputusan desain penting dalam pekerjaan kalian. Untuk tiap keputusan, sebutkan
-alternatif yang ditolak dan alasannya. Contoh topik (boleh memilih yang lain):
-
-- bagaimana parser membedakan `*` sebagai "semua kolom" dan sebagai perkalian;
-- di mana dan bagaimana presedensi `AND`/`OR` dinyatakan;
-- mengapa error recovery berhenti di `;`, bukan di keyword `SELECT` berikutnya;
-- urutan pencarian scope dan akibatnya pada shadowing serta correlated subquery;
-- mengapa kolom tanpa qualifier hanya dilihat di scope terdalam, dan apa kelemahannya;
-- bagaimana implementasi `INSERT ... SELECT` atau komentar blok kalian.
+alternatif yang ditolak dan alasannya.
 
 | No | Keputusan | Alternatif yang ditolak | Alasan |
 | --- | --- | --- | --- |
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 | Memisahkan hierarki ekspresi logika menjadi dua fungsi berbeda: `_or_expr()` memanggil `_and_expr()`. | Menangani `AND` dan `OR` di satu fungsi `_logical()` lalu merestrukturisasi pohon AST (*tree rewriting*) setelah parsing selesai. | Menerapkan prinsip *stratified grammar* (*Crafting Interpreters* Bab 6). Pembagian fungsi berjenjang memastikan operator `AND` memiliki presedensi lebih tinggi secara alami saat pohon AST dibangun, tanpa perlu logika penataan ulang AST yang rawan bug. |
+| 2 | Error recovery mode panic membuang token sampai melewati titik koma (`;`). | Menyinkronkan parser dengan berhenti di keyword awal statement berikutnya (`SELECT`, `INSERT`, `UPDATE`, `DELETE`). | Mengikuti SPESIFIKASI.md bagian 6. Berhenti di keyword awal query berisiko salah tangkap jika statement yang error memuat subquery dengan kata kunci `SELECT`, yang akan memecah query secara tidak utuh dan memicu rentetan error palsu (*cascading errors*). |
+| 3 | Resolusi identifier alias ditelusuri dari scope terdalam ke scope luar (`scope = scope.parent`). | Mengumpulkan seluruh scope ke dalam list array lalu membaliknya dengan `reversed()`, atau mencari dari root ke dalam. | Mengikuti semantik *lexical scoping* (*Crafting Interpreters* Bab 11). Menelusuri pointer rantai scope dari dalam ke luar menjamin alias di subquery secara tepat menutupi (*shadow*) alias yang sama di query luar, sekaligus mendukung *correlated subquery* untuk menjangkau alias leluhur. |
+| 4 | Resolusi kolom tanpa qualifier dibatasi pemeriksaannya hanya pada tabel di scope terdalam. | Menelusuri rantai parent scope ke atas jika tabel tidak ditemukan pada scope terdalam. | Menghindari pengikatan keliru (*accidental binding*) pada query bertingkat tanpa adanya katalog skema database. Konsekuensinya, kolom tanpa kualifikasi di subquery yang merujuk tabel luar akan menghasilkan warning dan tidak teresolusi, namun ini pilihan desain aman sesuai aturan SPESIFIKASI.md 4.3. |
+| 5 | Scanning komentar blok `/* ... */` di lexer dilakukan manual berbasis karakter dengan deteksi EOF. | Memakai ekspresi reguler non-greedy atau mencoba mendukung komentar blok bersarang (*nested comments*). | Menjaga arsitektur lexer tetap murni *character-by-character scanner* tanpa ketergantungan modul regex. Pendekatan ini memungkinkan pencatatan baris dan kolom `LexError` secara tepat saat komentar tidak ditutup sampai akhir file, sesuai batasan spesifikasi. |
