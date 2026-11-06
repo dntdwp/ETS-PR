@@ -202,3 +202,100 @@ def test_bug9_update_subquery_read_only():
     assert usage["t1"] == {"U"}
     # Tabel t2 di dalam subquery HARUS 'R', bukan 'U'
     assert usage["t2"] == {"R"}
+
+
+# =========================================================================
+# LIMA TEST KASUS TEPI (EDGE CASES)
+# =========================================================================
+
+def test_kasus_tepi_1_string_kosong_dan_kutip_ekstrem():
+    """Kasus tepi 1 (Lexer): String kosong '' dan string berisi escaped quote berturut-turut ''''.
+
+    Risiko: Kesalahan manipulasi pointer atau lookahead buffer saat membaca kutip tunggal
+    dapat memicu IndexError (out-of-bounds buffer) atau salah membedakan delimiter akhir string
+    dengan karakter kutip yang di-escape.
+    """
+    toks = tokenize("'' ''''")
+    assert len(toks) == 3  # STRING, STRING, EOF
+    assert toks[0].type == T.STRING
+    assert toks[0].value == ""
+    assert toks[1].type == T.STRING
+    assert toks[1].value == "'"
+
+
+def test_kasus_tepi_2_titik_koma_berulang_dan_statement_kosong():
+    """Kasus tepi 2 (Parser): Skrip SQL diawali, dipisahkan, atau diakhiri titik koma berulang (;;;).
+
+    Risiko: Loop sinkronisasi parser berisiko menghasilkan statement bernilai None, memicu ParseError
+    palsu (false positive) saat menemukan titik koma ekstra, atau gagal membaca statement valid setelahnya.
+    """
+    sql = ";;; SELECT id FROM t; ;; ;"
+    script = parse_sql(sql)
+    assert script.errors == []
+    assert len(script.statements) == 1
+    assert script.statements[0].sources[0].name == "t"
+
+
+def test_kasus_tepi_3_klausa_between_berdampingan_dengan_and():
+    """Kasus tepi 3 (Parser): Klausa BETWEEN berdampingan langsung dengan operator logika AND.
+
+    Risiko: Ambiguitas presedensi antara kata kunci AND pembatas rentang BETWEEN dengan AND sebagai
+    operator logika boolean. Jika parser mengonsumsi AND secara serakah (greedy) di tingkat logika boolean,
+    struktur pohon ekspresi WHERE dapat terpecah secara tidak valid.
+    """
+    sql = "SELECT id FROM t WHERE x BETWEEN 10 AND 20 AND y = 1;"
+    script = parse_sql(sql)
+    assert script.errors == []
+    where = script.statements[0].where
+    assert isinstance(where, BinaryOp)
+    assert where.op == "AND"
+    assert isinstance(where.left, ast.Between)
+    assert where.left.expr.name == "x"
+    assert where.right.left.name == "y"
+
+
+def test_kasus_tepi_4_nested_correlated_subquery_ancestor_scope():
+    """Kasus tepi 4 (Resolver): Subquery berkorelasi bersarang 3 tingkat merujuk alias tabel terluar.
+
+    Risiko: Resolusi identifier berisiko gagal saat menelusuri rantai pointer scope bertingkat
+    (scope.parent.parent), atau secara keliru mengikat referensi ke scope perantara yang tidak
+    mendefinisikan alias tersebut.
+    """
+    sql = (
+        "SELECT a.id FROM t1 a WHERE EXISTS ("
+        "  SELECT 1 FROM t2 b WHERE EXISTS ("
+        "    SELECT 1 FROM t3 c WHERE c.id = a.id"
+        "  )"
+        ");"
+    )
+    script = parse_sql(sql)
+    diags = Resolver().resolve_script(script)
+    assert diags == []
+
+    # Ambil kolom 'a.id' di subquery terdalam (t3)
+    cols = [n for n in ast.iter_nodes(script) if isinstance(n, ast.ColumnRef) and n.qualifier == "a"]
+    assert len(cols) == 2
+    # Kolom a.id pada c.id = a.id harus berhasil di-resolve ke tabel luar 't1'
+    assert cols[1].resolved == "t1"
+
+
+def test_kasus_tepi_5_insert_select_dengan_join_dan_subquery():
+    """Kasus tepi 5 (Analyzer & Pipeline): Statement INSERT INTO ... SELECT kompleks dengan JOIN dan subquery.
+
+    Risiko: Analyzer berisiko mencampuradukkan status operasi Create ('C') dan Read ('R'),
+    atau melewatkan tabel yang berada di cabang pohon JOIN atau klausa subquery di bawah statement INSERT.
+    """
+    sql = (
+        "INSERT INTO log.arsip (id, total) "
+        "SELECT p.id, p.total FROM crm.pesanan p "
+        "JOIN crm.pelanggan c ON p.cust_id = c.id "
+        "WHERE p.status IN (SELECT s.kode FROM ref.status s);"
+    )
+    script = parse_sql(sql)
+    usage = analyze_statement(script.statements[0])
+    # Tabel target INSERT harus C murni
+    assert usage["log.arsip"] == {"C"}
+    # Seluruh tabel sumber dan relasi harus R
+    assert usage["crm.pesanan"] == {"R"}
+    assert usage["crm.pelanggan"] == {"R"}
+    assert usage["ref.status"] == {"R"}
