@@ -13,6 +13,7 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | 7 | Denta & Kemal | Menerapkan TDD untuk Bug 6 (kata kunci `OUTER` opsional pada `LEFT JOIN`) SPESIFIKASI.md bagian 3 | Diterima | Solusi langsung mengonsumsi `OUTER` sebelum kata kunci `JOIN` | Menjalankan `pytest tests/test_tambahan.py -v -k "bug6"` (merah sebelum perbaikan, hijau sesudahnya) |
 | 8 | Denta & Kemal | Menerapkan TDD untuk TODO(T1) sintaks `INSERT INTO ... SELECT ...` di parser | Diterima | Memanggil `self._select()` dan menyimpannya ke atribut query `ast.Insert` sesuai SPESIFIKASI.md bagian 3 | Menjalankan `pytest tests/test_tambahan.py -v -k "t1"` dan `pytest tests/test_parser.py::test_insert_select` (keduanya lulus) |
 | 9 | Denta & Kemal | Menerapkan TDD untuk Bug 7 (pencarian scope terbalik / shadowing) Bab 11 Crafting Interpreters | Diterima | Menelusuri pointer rantai scope langsung dari `self.scope` ke parent tanpa `reversed()` | Menjalankan `pytest tests/test_tambahan.py -v -k "bug7"` (merah sebelum perbaikan, hijau sesudahnya) |
+| 10 | Denta & Kemal | Menerapkan TDD untuk Bug 8 (scope statement DELETE bocor ke query berikutnya) Bab 11 | Diterima | Menambahkan pemanggilan `self._pop()` di baris penutup `_delete()` sesuai SPESIFIKASI.md bagian 4.5 | Menjalankan `pytest tests/test_tambahan.py -v -k "bug8"` (lulus setelah perbaikan) |
 
 **Refleksi (3-5 kalimat).** Di bagian mana AI paling membantu? Di mana AI keliru atau
 menyesatkan, dan bagaimana kalian mengetahuinya?

@@ -162,7 +162,7 @@ SELECT x.id FROM t1 x WHERE x.id IN (SELECT x.id FROM t2 x);
 
 ## Bug 8: Lingkungan Scope Statement `DELETE` Bocor ke Statement Selanjutnya
 
-**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** (belum diperbaiki)
+**Ditemukan oleh:** Denta Dwipawasesa · **Diperbaiki oleh:** Denta Dwipawasesa
 
 **Gejala.** Pada `audit.sql` baris 16 terdapat query `DELETE FROM sesi s ...`, disusul baris 18 `SELECT s.id FROM pengguna u ...`. Query baris 18 tidak mendefinisikan alias `s`, namun resolver tidak mengeluarkan error `alias 's' tidak terdefinisi`. Kolom `s.id` malah dianggap merujuk ke tabel `sesi`. Menurut SPESIFIKASI.md bagian 4.5, setiap statement berdiri sendiri dan scope statement sebelumnya tidak boleh tersisa.
 
@@ -175,11 +175,11 @@ SELECT s.id FROM t2;
 
 **Akar masalah.** Pada `crud/resolver.py` fungsi `_delete()`, scope dibuka dengan `self._push()`, namun di akhir fungsi tidak terdapat pemanggilan `self._pop()`. Hal ini melanggar siklus hidup scope blok (*Crafting Interpreters* Bab 11: Resolving and Binding). Lingkungan deklarasi lokal yang tidak ditutup menyebabkan entri simbol tabel tetap tertinggal di tumpukan scope saat memproses statement berikutnya.
 
-**Perbaikan.** *(belum dilakukan)*
+**Perbaikan.** Pada `crud/resolver.py` fungsi `_delete()`, tambahkan pemanggilan `self._pop()` di akhir fungsi agar scope dibersihkan dan alias tidak bocor ke statement berikutnya. Alternatif mereset paksa `self.scope = None` di awal fungsi `resolve_statement()` ditolak karena cara tersebut hanya menambal gejala di tingkat luar dan bisa menyamarkan bug scope yang tidak tertutup rapi di dalam subquery.
 
-**Test regresi.** *(belum dibuat di tests/test_tambahan.py)*
+**Test regresi.** `test_bug8_delete_scope_leakage` di `tests/test_tambahan.py`.
 
-**Peran AI.** *(akan dicatat saat perbaikan dilakukan)*
+**Peran AI.** Co-driver memandu siklus hidup scope blok (*Crafting Interpreters* Bab 11) dan memastikan pasangan `_push()` dan `_pop()` lengkap. Diverifikasi langsung oleh Denta lewat `pytest tests/test_tambahan.py -v -k "bug8"`.
 
 ---
 
