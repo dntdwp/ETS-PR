@@ -11,6 +11,7 @@ import pytest
 from crud.lexer import LexError
 from crud.parser import parse_sql
 from crud.ast_nodes import BinaryOp
+from crud.resolver import Resolver
 
 def test_bug1_keyword_case_insensitive():
     """Bug 1: Keyword dengan variasi huruf besar/kecil harus dikenali sebagai KEYWORD
@@ -134,3 +135,19 @@ def test_todo_t1_insert_select():
     assert script_no_cols.errors == []
     assert script_no_cols.statements[0].columns == []
     assert script_no_cols.statements[0].query.sources[0].name == "aktivitas"
+
+def test_bug7_subquery_shadowing_innermost_first():
+    """Bug 7: Qualifier harus dicari dari scope terdalam ke luar (shadowing)
+    sesuai SPESIFIKASI.md bagian 4.3 dan Bab 11 Crafting Interpreters.
+    Alias 'x' di subquery harus menutupi (shadow) alias 'x' di query luar.
+    """
+    sql = "SELECT x.id FROM pelanggan x WHERE x.id IN (SELECT x.id FROM pesanan x);"
+    script = parse_sql(sql)
+    Resolver().resolve_script(script)
+
+    # Ambil kolom x.id di dalam subquery
+    subquery = script.statements[0].where.query
+    inner_col = subquery.columns[0].expr
+
+    # Harus terhubung ke 'pesanan' (scope dalam), bukan 'pelanggan' (scope luar)
+    assert inner_col.resolved == "pesanan"
