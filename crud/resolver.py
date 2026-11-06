@@ -8,7 +8,6 @@ from dataclasses import dataclass
 
 from . import ast_nodes as ast
 
-
 @dataclass
 class Diagnostic:
     level: str              # "error" atau "warning"
@@ -180,4 +179,10 @@ class Resolver:
         #   - tepat satu tabel di scope terdalam -> isi col.resolved
         #   - lebih dari satu tabel              -> warning "ambigu tanpa skema"
         #   - tidak ada tabel                    -> warning
-        pass
+        if self.scope is None or len(self.scope.entries) == 0:
+            self._warning(f"kolom'{col.name}' tidak ada tabel di scope", col.line)
+        elif len(self.scope.entries) == 1:
+            entry = next(iter(self.scope.entries.values()))
+            col.resolved = _target_of(entry)
+        else:
+            self._warning(f"kolom'{col.name}' ambigu tanpa skema", col.line)

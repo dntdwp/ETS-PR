@@ -12,6 +12,8 @@ from crud.lexer import LexError
 from crud.parser import parse_sql
 from crud.ast_nodes import BinaryOp
 from crud.resolver import Resolver
+from crud import ast_nodes as ast
+
 
 def test_bug1_keyword_case_insensitive():
     """Bug 1: Keyword dengan variasi huruf besar/kecil harus dikenali sebagai KEYWORD
@@ -166,3 +168,24 @@ def test_bug8_delete_scope_leakage():
     # Kolom s.id di statement kedua tidak boleh ter-resolve ke 'sesi'
     select_col = script.statements[1].columns[0].expr
     assert select_col.resolved is None
+
+def test_todo_t2_unqualified_column():
+    """TODO(T2): Kolom tanpa qualifier di scope terdalam:
+
+    - 1 tabel: di-resolve ke tabel tersebut.
+    - >1 tabel: warning 'ambigu tanpa skema', resolved tetap None.
+    - 0 tabel: warning (SPESIFIKASI.md bagian 4.3).
+    """
+    # 1. Tepat satu tabel -> di-resolve ke tabel itu
+    script1 = parse_sql("SELECT nama FROM pelanggan WHERE aktif = 1;")
+    diags1 = Resolver().resolve_script(script1)
+    cols1 = [n for n in ast.iter_nodes(script1) if isinstance(n, ast.ColumnRef)]
+    assert {c.resolved for c in cols1} == {"pelanggan"}
+    assert diags1 == []
+
+    # 2. Lebih dari satu tabel -> warning ambigu tanpa skema, resolved tetap None
+    script2 = parse_sql("SELECT id FROM t1, t2;")
+    diags2 = Resolver().resolve_script(script2)
+    col2 = [n for n in ast.iter_nodes(script2) if isinstance(n, ast.ColumnRef)][0]
+    assert col2.resolved is None
+    assert any(d.level == "warning" and "ambigu tanpa skema" in d.message for d in diags2)
