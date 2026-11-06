@@ -13,6 +13,7 @@ from crud.parser import parse_sql
 from crud.ast_nodes import BinaryOp
 from crud.resolver import Resolver
 from crud import ast_nodes as ast
+from crud.analyzer import analyze_statement
 
 
 def test_bug1_keyword_case_insensitive():
@@ -189,3 +190,15 @@ def test_todo_t2_unqualified_column():
     col2 = [n for n in ast.iter_nodes(script2) if isinstance(n, ast.ColumnRef)][0]
     assert col2.resolved is None
     assert any(d.level == "warning" and "ambigu tanpa skema" in d.message for d in diags2)
+
+def test_bug9_update_subquery_read_only():
+    """Bug 9: Subquery di klausa SET maupun WHERE pada UPDATE hanya membaca tabel (operasi 'R')
+
+    bukan operasi 'U' (SPESIFIKASI.md bagian 5).
+    """
+    sql = "UPDATE t1 SET a = 1 WHERE b IN (SELECT c FROM t2);"
+    script = parse_sql(sql)
+    usage = analyze_statement(script.statements[0])
+    assert usage["t1"] == {"U"}
+    # Tabel t2 di dalam subquery HARUS 'R', bukan 'U'
+    assert usage["t2"] == {"R"}
