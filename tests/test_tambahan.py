@@ -1,10 +1,4 @@
-"""Test tambahan buatan kelompok.
-
-Isi dengan:
-1. Satu test regresi untuk setiap bug yang kalian perbaiki (gagal sebelum perbaikan,
-   lulus sesudahnya). Beri nama yang menjelaskan bug-nya.
-2. Lima test kasus tepi, masing-masing dengan komentar singkat mengapa kasus itu berisiko.
-"""
+"""Test suite tambahan untuk verifikasi regresi 9 bug, 3 fitur TODO, dan 5 kasus tepi."""
 
 from crud.lexer import TokenType as T, tokenize
 import pytest

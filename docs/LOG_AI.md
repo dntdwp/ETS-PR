@@ -1,6 +1,6 @@
 # Log Penggunaan AI
 
-Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
+Catatan interaksi dengan asisten AI selama pengerjaan kode, pengujian regresi, dan penyusunan dokumentasi.
 
 | No | Siapa | Prompt / tugas (ringkas) | Hasil: diterima, diubah, atau ditolak | Alasan | Cara verifikasi |
 | --- | --- | --- | --- | --- | --- |
@@ -17,5 +17,5 @@ Catat setiap penggunaan AI atau coding agent yang memengaruhi kode atau laporan.
 | 11 | Kemal & Denta | Menerapkan TDD untuk TODO(T2) resolusi kolom tanpa qualifier dan diagnostik warning ambiguitas | Diterima | Menghubungkan ke satu tabel di scope terdalam dan memunculkan warning jika ambigu/tanpa tabel sesuai SPESIFIKASI.md 4.3 | Menjalankan `pytest tests/test_tambahan.py -v -k "t2"` dan `pytest tests/test_resolver.py::test_kolom_tanpa_qualifier_satu_tabel` (keduanya lulus) |
 | 12 | Kemal & Denta | Menerapkan TDD untuk Bug 9 (subquery di UPDATE dicap 'U' bukan 'R') SPESIFIKASI.md bagian 5 | Diterima | Mengubah operasi pembacaan klausa SET dan WHERE menjadi 'R' di `crud/analyzer.py` | Menjalankan `pytest tests/test_tambahan.py -v -k "bug9"` dan `pytest tests/test_analyzer.py -v` (keduanya lulus) |
 
-**Refleksi (3-5 kalimat).**
+**Refleksi.**
 AI paling membantu dalam mempercepat penyusunan skenario test regresi TDD, memvalidasi aturan tata bahasa berjenjang (*stratified grammar*), serta menelusuri rantai pointer tumpukan scope (*lexical scoping*). AI sempat keliru saat mengusulkan pemotongan token tanpa validasi batas indeks string pada perbaikan escaped quote, dan sempat melewatkan argumen `line` pada konstruksi diagnostik resolver. Kami mengenali kesalahan tersebut dari laporan kegagalan assertion `pytest` dan langsung memperbaikinya dengan merujuk langsung ke aturan SPESIFIKASI.md.

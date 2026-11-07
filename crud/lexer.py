@@ -107,7 +107,7 @@ class Lexer:
                 self._advance()
             return
         if ch == "/" and self._peek() == "*":
-            # TODO(T3): Abaikan isi komentar blok /* ... */ hingga penutup */, lempar LexError jika tidak ditutup.
+            # Abaikan isi komentar blok /* ... */ hingga penutup */, lempar LexError jika tidak ditutup.
             self._advance()
             while not self._at_end():
                 if self._peek() == "*" and self._peek(1) == "/":

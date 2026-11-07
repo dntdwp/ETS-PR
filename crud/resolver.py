@@ -176,7 +176,7 @@ class Resolver:
             else:
                 col.resolved = _target_of(entry)
             return
-        # TODO(T2): Resolusi kolom tanpa qualifier pada scope terdalam: hubungkan jika tepat 1 tabel, atau beri warning jika ambigu (>1) / tidak ada.
+        # Resolusi kolom tanpa qualifier pada scope terdalam: hubungkan jika tepat 1 tabel, atau beri warning jika ambigu (>1) / tidak ada.
         if self.scope is None or len(self.scope.entries) == 0:
             self._warning(f"kolom '{col.name}' tidak ada tabel di scope", col.line)
         elif len(self.scope.entries) == 1:

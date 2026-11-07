@@ -1,7 +1,6 @@
 # Kartu Desain
 
-Tuliskan lima keputusan desain penting dalam pekerjaan kalian. Untuk tiap keputusan, sebutkan
-alternatif yang ditolak dan alasannya.
+Lima keputusan desain utama pada pengembangan ekstraktor CRUD matrix beserta alternatif yang dipertimbangkan dan alasan pemilihannya.
 
 | No | Keputusan | Alternatif yang ditolak | Alasan |
 | --- | --- | --- | --- |
