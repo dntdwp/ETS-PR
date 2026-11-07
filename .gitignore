@@ -4,3 +4,5 @@ __pycache__/
 !data/*.csv
 .DS_Store
 __MACOSX/
+.vscode/
+Pipeline/
